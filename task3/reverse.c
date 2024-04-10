@@ -5,6 +5,7 @@
 #include <fcntl.h> 
 #include <sys/stat.h>
 #include <stdlib.h>
+#include <errno.h>
 
 void reverseString(char from[], char to[]) {
    int len = strlen(from);
@@ -22,20 +23,38 @@ void constructFilePath(char dirName[256], char name[256], char filePath[512]) {
    filePath[strlen(dirName) + strlen(name) + 1] = '\0';
 }
 
-void revCopyFile(int src, int dest) {
-   unsigned char* buff = (unsigned char*)malloc(2048 * sizeof(unsigned char));
-   unsigned char* buffRev = (unsigned char*)malloc(2048 * sizeof(unsigned char));
-   int counter = read(src, buff, 2048 * sizeof(unsigned char));
-   while (counter > 0) {
+void printErr(char* funcName) {
+   printf("execute func %s with error %s\n", funcName, strerror(errno));
+}
+
+void revCopyFile(int src, int dest, int src_size) {
+   unsigned char buff[2048];
+   unsigned char buffRev[2048];
+   lseek(src, src_size - src_size % 2048, SEEK_SET);
+   int counter = 0;
+   while (counter != src_size) {
+      int temp = read(src, buff, 2048 * sizeof(unsigned char));
+      counter += temp;
       for (int i = 0; i < counter; i++) {
          buffRev[i] = buff[counter - i - 1];
       }
-      write(dest, buffRev, counter);
-      counter = read(src, buff, 2048 * sizeof(unsigned char));
+      int counterBytes = 0; 
+      while (counterBytes != temp) {
+         int wrBytes = write(dest, buffRev, temp);
+         if (wrBytes == -1) {
+            printErr("write");
+            return;
+         }
+         counterBytes += wrBytes;
+      }
+
+      if (counter + 2048 > src_size) {
+         break;
+      }
+      lseek(src, src_size - (counter + 2048), SEEK_SET);
    }
-   free(buffRev);
-   free(buff);
 }
+
 
 void reverseDir(char path[]) {
    DIR* dir;
@@ -44,7 +63,7 @@ void reverseDir(char path[]) {
    dir = opendir(path);
 
    if (dir == NULL) {
-      printf("coudn't open dir");
+      printErr("opendir"); 
       return;
    }
    char revDirName[256];
@@ -68,12 +87,19 @@ void reverseDir(char path[]) {
    constructFilePath(currDirPath, revDirName, revDirPath);
    de = readdir(dir);
    while (de != NULL) {
-      if (de->d_type != DT_REG) {
+      if (de->d_type != DT_REG && de->d_type != DT_DIR) {
          de = readdir(dir);
          continue;
-      }
+      } 
       char filePath[512];
       constructFilePath(path, de->d_name, filePath);
+      if (de->d_type == DT_DIR) {
+         if (strcmp(de->d_name, ".") && strcmp(de->d_name, "..")) {
+            reverseDir(filePath);
+         }
+         de = readdir(dir);
+         continue;
+      } 
       struct stat st;
       stat(filePath, &st);
       int read = open(filePath, O_RDWR);
@@ -90,20 +116,15 @@ void reverseDir(char path[]) {
       if (write == -1){
          break;
       }
-      revCopyFile(read, write);
+      revCopyFile(read, write, st.st_size);
       close(read);
       close(write);
       de = readdir(dir);
    }
-
 }
 
 int main(int argc, char** argv) {
    reverseDir(argv[1]);
-
-   //   int read = open("/file1", O_RDONLY);
-   // if (read == -1) {
-   //  printf("here\n");
-   //}
    return 0;
-} 
+}
+
