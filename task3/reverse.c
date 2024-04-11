@@ -24,7 +24,7 @@ void constructFilePath(char dirName[256], char name[256], char filePath[512]) {
 }
 
 void printErr(char* funcName) {
-   printf("execute func %s with error %s\n", funcName, strerror(errno));
+   fprintf(stderr, "execute func %s with error %s\n", funcName, strerror(errno));
 }
 
 void revCopyFile(int src, int dest, int src_size) {
@@ -104,7 +104,7 @@ void reverseDir(char path[]) {
       stat(filePath, &st);
       int read = open(filePath, O_RDWR);
       if (read == -1) {
-         printf("Cant open file: %s\n", de->d_name);
+         fprintf(stderr, "Cant open file: %s\n", de->d_name);
          de = readdir(dir);
          continue;
       }
