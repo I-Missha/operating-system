@@ -114,6 +114,7 @@ void reverseDir(char path[]) {
       constructFilePath(revDirPath, revFileName, revFilePath);
       int write = open(revFilePath, O_CREAT | O_RDWR | O_TRUNC , st.st_mode);
       if (write == -1){
+         fprintf(stderr, "Cant open/create file with path: %s\n", revDirPath);
          break;
       }
       revCopyFile(read, write, st.st_size);
