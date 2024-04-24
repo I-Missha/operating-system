@@ -152,46 +152,67 @@ void myChmod(char* filePath, mode_t mode) {
    }
 }
 
+void getFileName(char* from, char* to) {
+   int lenFrom = strlen(from);
+   int j = 0;
+   char buff[2048];
+   for (int i = lenFrom - 1; i >= 0; i--) {
+
+      buff[j] = from[i];
+      j++;
+      if (from[i] == '/') {
+         buff[j] = '.';
+         break;
+      }
+   }
+   int lenTo = strlen(buff) - 1;
+   j = 0;
+   for (int i = lenTo; i >= 0; i--) {
+      to[j] = buff[i];
+   } 
+}
+
 int main(int argc, char** argv) {
    if (argc != 3 && argc != 2) {
       fprintf(stderr, "wrong argc\n");
       return 0;
    }
-
+   char fileName[2048];
+   getFileName(argv[0], fileName);
    if (argc == 3) {
-      if (!strcmp(argv[0], "./symlink")) {
+      if (!strcmp(fileName, "./symlink")) {
          mySymlink(argv[1], argv[2]);
          return 0;
-      } else if (!strcmp(argv[0], "./link")) {
+      } else if (!strcmp(fileName, "./link")) {
          myLink(argv[1], argv[2]);
          return 0;
-      } else if (!strcmp(argv[0], "./chmod")) {
+      } else if (!strcmp(fileName, "./chmod")) {
          myChmod(argv[1], strtol(argv[2], NULL, 8));
          return 0;
       }  
    }
 
-   if (!strcmp(argv[0], "./mkdir")) {
+   if (!strcmp(fileName, "./mkdir")) {
       myMkdir(argv[1]); 
-   } else if (!strcmp(argv[0], "./ls")) {
+   } else if (!strcmp(fileName, "./ls")) {
       myLs(argv[1]); 
-   } else if (!strcmp(argv[0], "./rmdir")) {
+   } else if (!strcmp(fileName, "./rmdir")) {
       myRmDir(argv[1]);
-   } else if (!strcmp(argv[0], "./touch")) {
+   } else if (!strcmp(fileName, "./touch")) {
       myTouch(argv[1]);
-   } else if (!strcmp(argv[0], "./cat")) {
+   } else if (!strcmp(fileName, "./cat")) {
       myCat(argv[1]);
-   } else if (!strcmp(argv[0], "./rm")) {
+   } else if (!strcmp(fileName, "./rm")) {
       myRm(argv[1]);
-   } else if (!strcmp(argv[0], "./readlink")) {
+   } else if (!strcmp(fileName, "./readlink")) {
       myReadLink(argv[1]);
-   } else if (!strcmp(argv[0], "./readfbl")) {
-      myReadFileByLink(argv[0]);
-   } else if (!strcmp(argv[0], "./unsymunlink")) {
+   } else if (!strcmp(fileName, "./readfbl")) {
+      myReadFileByLink(fileName);
+   } else if (!strcmp(fileName, "./unsymunlink")) {
       myRm(argv[1]);
-   } else if (!strcmp(argv[0], "./unhardlink")) {
+   } else if (!strcmp(fileName, "./unhardlink")) {
       myRm(argv[1]);
-   } else if (!strcmp(argv[0], "./stat")) {
+   } else if (!strcmp(fileName, "./stat")) {
       myStat(argv[1]);
    }
 
