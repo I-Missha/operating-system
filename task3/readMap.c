@@ -136,6 +136,8 @@ void readPagemapByAddresses(char* pid) {
       }
       memset(buff, 0, 2048);
    }
+   close(fd);
+   close(fd_pagemap);
 } 
 
 int main(int argc, char** args) {
